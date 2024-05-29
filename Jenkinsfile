@@ -22,6 +22,7 @@ pipeline {
         stage('Ansbile dir creation') {
             steps {
                 script {
+                    git branch: 'ansible-pipeline', url: 'https://github.com/juleshkumar/jenkins-test.git'
                     dir('julesh-terraform/environments/dev/Ansible') {
                         def inventoryContent = "[ec2]\n${env.INSTANCE_PUBLIC_IP} ansible_user=ubuntu ansible_ssh_private_key_file=/var/lib/jenkins/keypairs/jenkins-test-server2-keypair.pem"
                         sh "echo '${inventoryContent}' > inventory.ini"
