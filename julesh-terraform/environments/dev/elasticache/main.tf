@@ -4,7 +4,10 @@ module "elasticache" {
   redis-engine           = var.redis-engine
   redis-engine-version   = var.redis-engine-version
   redis-node-type        = var.redis-node-type
-  num-cache-nodes        = var.num-cache-nodes
+#  num-cache-nodes        = var.num-cache-nodes
   parameter-group-family = var.parameter-group-family
   replication-id         = var.replication-id
+  auth_token             = var.auth_token
+  num-node-groups = var.num-node-groups
+  replicas-per-node-group = var.replicas-per-node-group
 }
