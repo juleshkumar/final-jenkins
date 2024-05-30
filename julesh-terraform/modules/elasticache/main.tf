@@ -5,7 +5,7 @@ data "terraform_remote_state" "vpc_state" {
     bucket     = "decimaltesting"
     key        = "backend/vpc"
     region     = "us-east-1"
-    role_arn   = "arn:aws:iam::471112548391:role/decimal-jenkins-role"
+    role_arn   = "arn:aws:iam::471112548391:role/decimal-vrt-test"
   }
 }
 
