@@ -5,7 +5,7 @@ data "terraform_remote_state" "vpc_state" {
     bucket     = "terrafrom-test-to-delete-bucket"
     key        = "backend/vpc"
     region     = "ap-south-1"
-    role_arn   = ""
+    role_arn   = "arn:aws:iam::471112548391:role/decimal-jenkins-role"
   }
 }
 
@@ -16,7 +16,7 @@ data "terraform_remote_state" "kms" {
     bucket     = "terrafrom-test-to-delete-bucket"
     key        = "backend/kms"
     region     = "ap-south-1"
-    role_arn   = ""
+    role_arn   = "arn:aws:iam::471112548391:role/decimal-jenkins-role"
   }
 }
 
