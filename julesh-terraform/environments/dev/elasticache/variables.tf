@@ -18,10 +18,10 @@ variable "redis-node-type" {
   description = "The compute and memory capacity of the nodes in the node group"
 }
 
-variable "num-cache-nodes" {
-  description = "The initial number of cache nodes that the cache cluster has"
-  type        = number
-}
+#variable "num-cache-nodes" {
+#  description = "The initial number of cache nodes that the cache cluster has"
+#  type        = number
+#}
 
 variable "parameter-group-family" {
   description = "The initial number of cache nodes that the cache cluster has"
@@ -29,7 +29,21 @@ variable "parameter-group-family" {
 }
 
 variable "replication-id" {
-  type = string
+  type        = string
   description = "(optional) describe your variable"
 }
 
+
+variable "auth_token" {
+  type = string
+}
+
+variable "num-node-groups" {
+  description = "The number of node groups (shards) for this Redis replication group"
+  type        = number
+}
+
+variable "replicas-per-node-group" {
+  description = "The number of replica nodes in each node group (shard)"
+  type        = number
+}
