@@ -5,6 +5,7 @@ data "terraform_remote_state" "vpc_state" {
     bucket     = "terrafrom-test-to-delete-bucket"
     key        = "backend/vpc"
     region     = "ap-south-1"
+    role_arn   = ""
   }
 }
 
@@ -15,6 +16,7 @@ data "terraform_remote_state" "eks" {
     bucket     = "terrafrom-test-to-delete-bucket"
     key        = "backend/eks"
     region     = "ap-south-1"
+    role_arn   = ""
   }
 }
 
