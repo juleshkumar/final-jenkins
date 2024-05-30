@@ -16,7 +16,7 @@ data "terraform_remote_state" "kms" {
     bucket     = "decimaltesting"
     key        = "backend/kms"
     region     = "us-east-1"
-    role_arn   = "arn:aws:iam::471112548391:role/decimal-jenkins-role"
+    role_arn   = "arn:aws:iam::471112548391:role/decimal-vrt-test"
   }
 }
 
