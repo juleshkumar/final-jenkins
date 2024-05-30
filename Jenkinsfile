@@ -76,7 +76,7 @@ pipeline {
                     def publicSubnetMask = params['public-subnet_mask'].toInteger()
                     def privateSubnetMask = params['private-subnet_mask'].toInteger()
                     
-                    git branch: 'main', url: 'https://github.com/juleshkumar/jenkins-test.git'
+                    git branch: 'main', url: 'https://github.com/juleshkumar/final-jenkins.git'
                     dir('julesh-terraform/environments/dev/vpc') {
                         sh 'terraform init'
                         
