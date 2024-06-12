@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'EC2_IP', defaultValue: '', description: 'EC2 IP Address')
+        string(name: 'EC2_IP', defaultValue: '3.7.209.143', description: 'EC2 IP Address')
         string(name: 'region', defaultValue: 'ap-south-1', description: 'Region')
         string(name: 'output', defaultValue: 'text', description: 'Output format')
         string(name: 'cluster-name', defaultValue: 'eks-decimal-test', description: 'eks cluster name')
