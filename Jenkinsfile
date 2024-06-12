@@ -64,19 +64,28 @@ pipeline {
         string(name: 'from_ports', defaultValue: '443', description: 'lb port')
         string(name: 'to_ports', defaultValue: '443', description: 'lb port')
         string(name: 'security-group-cidr', defaultValue: '0.0.0.0/0', description: 'source cidr')
+        string(name: 'region', defaultValue: 'ap-south-1', description: 'Region')
+        string(name: 'output', defaultValue: 'text', description: 'Output format')
+    }
+
+    environment {
+        AWS_ACCESS_KEY_ID     = credentials('aws-access-key-id')
+        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
+        ANSIBLE_HOST_KEY_CHECKING = 'False'
     }
 
     stages {
         stage('VPC Creation') {
             steps {
                 script {
+                    // Convert parameters to numbers
                     def publicCount = params['public-count'].toInteger()
                     def privateCount = params['private-count'].toInteger()
                     def natCount = params['nat-count'].toInteger()
                     def publicSubnetMask = params['public-subnet_mask'].toInteger()
                     def privateSubnetMask = params['private-subnet_mask'].toInteger()
                     
-                    git branch: 'main', url: 'https://github.com/juleshkumar/final-jenkins.git'
+                    git branch: 'main', url: 'https://github.com/juleshkumar/jenkins-test.git'
                     dir('julesh-terraform/environments/dev/vpc') {
                         sh 'terraform init'
                         
@@ -115,7 +124,7 @@ pipeline {
                 }
             }
         }
-        stage('LB Creation') {
+        stage('Load balancer Creation') {
             steps {
                 script {
                     def lbport = params['lb-port'].toInteger()
@@ -237,51 +246,6 @@ pipeline {
             }
         }
         
-        stage('RDS Creation') {
-            steps {
-                script {
-                    dir('julesh-terraform/environments/dev/rds') {
-                        sh 'terraform init'
-                        
-                        def tfPlanCmd = "terraform plan -out=rds_tfplan " +
-                                        "-var 'vrt_db_instance_identifier=${params.vrt_db_instance_identifier}' " +
-                                        "-var 'vrt_db_security_group=${params.vrt_db_security_group}' " +
-                                        "-var 'vrt__db_cidr_range=${params.vrt__db_cidr_range}' " +
-                                        "-var 'major_version=${params.major_version}' " +
-                                        "-var 'vrt_db_allocated_storage=${params.vrt_db_allocated_storage}' " +
-                                        "-var 'engine_version=${params.engine_version}' " +
-                                        "-var 'vrt_db_instance_type=${params.vrt_db_instance_type}' " +
-                                        "-var 'vrt_database_name=${params.vrt_database_name}' " +
-                                        "-var 'database_user=${params.database_user}' " +
-                                        "-var 'database_password=${params.database_password}'"
-                        sh tfPlanCmd
-                        sh 'terraform show -no-color rds_tfplan > rds_tfplan.txt'
-                        
-                        if (params.action == 'apply') {
-                        if (!params.autoApprove) {
-                            def plan = readFile 'rds_tfplan.txt'
-                            input message: "Do you want to apply the plan?",
-                                  parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
-                        }
-                        sh "terraform ${params.action} -input=false rds_tfplan"
-                    } else if (params.action == 'destroy') {
-                        sh "terraform ${params.action} --auto-approve -var 'vrt_db_instance_identifier=${params.vrt_db_instance_identifier}' " +
-                            "-var 'vrt_db_security_group=${params.vrt_db_security_group}' " +
-                            "-var 'vrt__db_cidr_range=${params.vrt__db_cidr_range}' " +
-                            "-var 'major_version=${params.major_version}' " +
-                            "-var 'vrt_db_allocated_storage=${params.vrt_db_allocated_storage}' " +
-                            "-var 'engine_version=${params.engine_version}' " +
-                            "-var 'vrt_db_instance_type=${params.vrt_db_instance_type}' " +
-                            "-var 'vrt_database_name=${params.vrt_database_name}' " +
-                            "-var 'database_user=${params.database_user}' " +
-                            "-var 'database_password=${params.database_password}'"
-                    } else {
-                        error "Invalid action selected. Please choose either 'apply' or 'destroy'."
-                    }
-                    }
-                }
-            }
-        }
         stage('ec2-jumbox creation') {
             steps {
                 script {
@@ -478,50 +442,7 @@ pipeline {
                 }
             }
         }
-        stage('Redis Creation') {
-            steps {
-                script {
-                    def cachenodes = params['num-cache-nodes'].toInteger()
-                    dir('julesh-terraform/environments/dev/elasticache') {
-                        sh 'terraform init'
-                        
-                        def tfPlanCmd = "terraform plan -out=ec_tfplan " +
-                                        "-var 'replication-id=${params['replication-id']}' " +
-                                        "-var 'redis-cluster=${params['redis-cluster']}' " +
-                                        "-var 'redis-engine=${params['redis-engine']}' " +
-                                        "-var 'redis-engine-version=${params['redis-engine-version']}' " +
-                                        "-var 'redis-node-type=${params['redis-node-type']}' " +
-                                        "-var 'num-cache-nodes=${cachenodes}' " +
-                                        "-var 'parameter-group-family=${params['parameter-group-family']}' "
-                        sh tfPlanCmd
-                        sh 'terraform show -no-color ec_tfplan > ec_tfplan.txt'
-                        
-                        if (params.action == 'apply') {
-                        if (!params.autoApprove) {
-                            def plan = readFile 'ec_tfplan.txt'
-                            input message: "Do you want to apply the plan?",
-                                  parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
-                        }
-                        sh "terraform ${params.action} -input=false ec_tfplan"
-                    } else if (params.action == 'destroy') {
-                        sh "terraform ${params.action} --auto-approve -var '-var 'replication-id=${params['replication-id']}' " +
-                            "-var 'redis-cluster=${params['redis-cluster']}' " +
-                            "-var 'redis-engine=${params['redis-engine']}' " +
-                            "-var 'redis-engine-version=${params['redis-engine-version']}' " +
-                            "-var 'redis-node-type=${params['redis-node-type']}' " +
-                            "-var 'num-cache-nodes=${params['num-cache-nodes']}' " +
-                            "-var 'parameter-group-family=${params['parameter-group-family']}' "
-                    } else {
-                        error "Invalid action selected. Please choose either 'apply' or 'destroy'."
-                    }
-                    def redisendpoint = sh(returnStdout: true, script: "terraform output -json redis_cluster_endpoint").trim()
-                    def fromatedendpoint = redisendpoint.replaceAll('"', '')
-
-                    env.redis_endpoint = fromatedendpoint
-                    }
-                }
-            }
-        }
+        
         stage('EKS Addon') {
             steps {
                 script {
