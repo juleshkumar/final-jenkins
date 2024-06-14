@@ -88,7 +88,6 @@ pipeline {
                     dir('julesh-terraform/environments/dev/vpc') {
                         sh "terraform init \
                             -backend-config='bucket=terrafrom-test-to-delete-bucket' \
-                            -backend-config='key=backend/jumpbox' \
                             -backend-config='region=ap-south-1' \
                             -reconfigure"
 
