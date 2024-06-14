@@ -90,8 +90,7 @@ pipeline {
                             -backend-config='bucket=terrafrom-test-to-delete-bucket' \
                             -backend-config='key=backend/jumpbox' \
                             -backend-config='region=ap-south-1' \
-                            -migrate-state \
-                            -reconfigure"
+                            -migrate-state
 
 
                         
