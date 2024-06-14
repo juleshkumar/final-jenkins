@@ -89,7 +89,7 @@ pipeline {
                         sh "terraform init \
                             -backend-config='bucket=terrafrom-test-to-delete-bucket' \
                             -backend-config='region=ap-south-1' \
-                            -reconfigure"
+                            -migrate-state"
 
 
                         
