@@ -86,7 +86,11 @@ pipeline {
                     
                     git branch: 'main', url: 'https://github.com/juleshkumar/jenkins-test.git'
                     dir('julesh-terraform/environments/dev/vpc') {
-                        sh 'terraform init'
+                        sh "terraform init \
+                            -backend-config='bucket=terrafrom-test-to-delete-bucket' \
+                            -backend-config='key=backend/jumpbox' \
+                            -backend-config='region=ap-south-1'"
+
                         
                         def tfPlanCmd = "terraform plan -out=vpc_tfplan " +
                                         "-var 'vpc_cidr=${params.vpc_cidr}' " +
