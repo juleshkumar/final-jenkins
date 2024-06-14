@@ -105,7 +105,7 @@ pipeline {
                             def plan = readFile 'vpc_tfplan.txt'
                             input message: "Do you want to apply the plan?",
                                   parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
-                        }ami
+                        }
                         sh "terraform ${params.action} -input=false vpc_tfplan"
                     } else if (params.action == 'destroy') {
                         sh "terraform ${params.action} --auto-approve -var 'vpc_cidr=${params.vpc_cidr}' " +
@@ -118,7 +118,7 @@ pipeline {
                             "-var 'security_group=${params.vpc_default_security_group}'"
                     } else {
                         error "Invalid action selected. Please choose either 'apply' or 'destroy'."
-                    }ami
+                    }
                     }
                 }
             }
