@@ -86,10 +86,7 @@ pipeline {
                     
                     git branch: 'main', url: 'https://github.com/juleshkumar/jenkins-test.git'
                     dir('julesh-terraform/environments/dev/vpc') {
-                        sh "terraform init \
-                            -backend-config='bucket=terrafrom-test-to-delete-bucket' \
-                            -backend-config='region=ap-south-1' \
-                            -migrate-state"
+                        sh 'terraform init'
 
 
                         
