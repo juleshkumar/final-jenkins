@@ -2,6 +2,10 @@ pipeline {
     agent any
 
     parameters {
+        string(name: 'INSTANCE_PUBLIC_IP', defaultValue: '13.201.141.73', description: 'jumpbox-instance-ip')
+        string(name: 'EFS_DNS_NAME', defaultValue: 'fs-0f98b441ba19c9c90.efs.ap-south-1.amazonaws.com', description: 'efs dns name')
+        string(name: 'EFS_ID', defaultValue: 'fs-0f98b441ba19c9c90', description: 'efs id')
+        string(name: 'redis_endpoint', defaultValue: 'master.decimal-elasticache-replication.8g5lkl.aps1.cache.amazonaws.com', description: 'redis endpoint')
         string(name: 'region', defaultValue: 'ap-south-1', description: 'Region')
         string(name: 'output', defaultValue: 'text', description: 'Output format')
         string(name: 'namespace', defaultValue: 'vrt', description: 'Namespace')
@@ -22,11 +26,11 @@ pipeline {
         stage('Ansbile dir creation') {
             steps {
                 script {
-                    git branch: 'ansible-pipeline', url: 'https://github.com/juleshkumar/final-jenkins.git'
+                    git branch: 'main', url: 'https://github.com/juleshkumar/jenkins-test.git'
                     dir('julesh-terraform/environments/dev/Ansible') {
-                        def inventoryContent = "[ec2]\n${env.INSTANCE_PUBLIC_IP} ansible_user=ubuntu ansible_ssh_private_key_file=/var/lib/jenkins/keypairs/jenkins-test-server2-keypair.pem"
+                        def inventoryContent = "[ec2]\n${params.INSTANCE_PUBLIC_IP} ansible_user=ubuntu ansible_ssh_private_key_file=/var/lib/jenkins/keypairs/jenkins-test-server2-keypair.pem"
                         sh "echo '${inventoryContent}' > inventory.ini"
-                        sh "ansible-playbook -i inventory.ini deploy.yml --extra-vars 'efs_dns_name=${env.EFS_DNS_NAME} aws_access_key_id=${env.AWS_ACCESS_KEY_ID} aws_secret_access_key=${env.AWS_SECRET_ACCESS_KEY} aws_region=${params.region} aws_output_format=${params.output} region=${params.region}'"
+                        sh "ansible-playbook -i inventory.ini deploy.yml --extra-vars 'efs_dns_name=${params.EFS_DNS_NAME} aws_access_key_id=${env.AWS_ACCESS_KEY_ID} aws_secret_access_key=${env.AWS_SECRET_ACCESS_KEY} aws_region=${params.region} aws_output_format=${params.output} region=${params.region}'"
                 }
             }
         }
@@ -36,11 +40,11 @@ pipeline {
                 script {
                     dir('julesh-terraform/environments/dev/Tools') {
 
-                        def inventoryContent = "[ec2]\n${env.INSTANCE_PUBLIC_IP} ansible_user=ubuntu ansible_ssh_private_key_file=/var/lib/jenkins/keypairs/jenkins-test-server2-keypair.pem"
+                        def inventoryContent = "[ec2]\n${params.INSTANCE_PUBLIC_IP} ansible_user=ubuntu ansible_ssh_private_key_file=/var/lib/jenkins/keypairs/jenkins-test-server2-keypair.pem"
                         sh "echo '${inventoryContent}' > inventory.ini"
 
                     
-                        sh "ansible-playbook -i inventory.ini deploy.yml --extra-vars 'efs_id=${env.EFS_ID} aws_access_key_id=${env.AWS_ACCESS_KEY_ID} aws_secret_access_key=${env.AWS_SECRET_ACCESS_KEY} aws_region=${params.region} aws_output_format=${params.output} namespace=${params.namespace} region=${params.region} cluster_name=${params['cluster-name']} consul_version=${params.consul_version} elasticsearch_version=${params.elasticsearch_version} kafka_version=${params.kafka_version} nginx_ic_version=${params.nginx_version} logstash_version=${params.logstash_version}'"
+                        sh "ansible-playbook -i inventory.ini deploy.yml --extra-vars 'efs_id=${params.EFS_ID} aws_access_key_id=${env.AWS_ACCESS_KEY_ID} aws_secret_access_key=${env.AWS_SECRET_ACCESS_KEY} aws_region=${params.region} aws_output_format=${params.output} namespace=${params.namespace} region=${params.region} cluster_name=${params['cluster-name']} consul_version=${params.consul_version} elasticsearch_version=${params.elasticsearch_version} kafka_version=${params.kafka_version} nginx_ic_version=${params.nginx_version} logstash_version=${params.logstash_version}'"
                     }
                 }
             }
@@ -50,11 +54,11 @@ pipeline {
                 script {
                     dir('julesh-terraform/environments/dev/Apps') {
 
-                        def inventoryContent = "[ec2]\n${env.INSTANCE_PUBLIC_IP} ansible_user=ubuntu ansible_ssh_private_key_file=/var/lib/jenkins/keypairs/jenkins-test-server2-keypair.pem"
+                        def inventoryContent = "[ec2]\n${params.INSTANCE_PUBLIC_IP} ansible_user=ubuntu ansible_ssh_private_key_file=/var/lib/jenkins/keypairs/jenkins-test-server2-keypair.pem"
                         sh "echo '${inventoryContent}' > inventory.ini"
 
                     
-                        sh "ansible-playbook -i inventory.ini deploy.yml --extra-vars 'redis_host=${env.redis_endpoint} aws_access_key_id=${env.AWS_ACCESS_KEY_ID} aws_secret_access_key=${env.AWS_SECRET_ACCESS_KEY} aws_region=${params.region} aws_output_format=${params.output} namespace=${params.namespace}'"
+                        sh "ansible-playbook -i inventory.ini deploy.yml --extra-vars 'redis_host=${params.redis_endpoint} aws_access_key_id=${env.AWS_ACCESS_KEY_ID} aws_secret_access_key=${env.AWS_SECRET_ACCESS_KEY} aws_region=${params.region} aws_output_format=${params.output} namespace=${params.namespace}'"
                     }
                 }
             }
