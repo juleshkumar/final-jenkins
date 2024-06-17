@@ -49,7 +49,15 @@ pipeline {
         string(name: 'redis-engine', defaultValue: 'redis', description: 'Enter redis engine name')
         string(name: 'redis-engine-version', defaultValue: '6.0', description: 'Enter redis engine version') 
         string(name: 'redis-node-type', defaultValue: 'cache.t3.small', description: 'Enter redis node type')
-        string(name: 'num-cache-nodes', defaultValue: '1', description: 'Enter number of cache nodes for redis')
+        string(name: 'environment', defaultValue: 'dev', description: 'environment tag')
+        string(name: 'auth_token', defaultValue: 'PMZuzUmV85Bt+bh7aM5s2Pbl5d40PRwyx2RL29EiHds=', description: 'redis auth token')
+        string(name: 'redis_password', defaultValue: 'samepasswprdforredis', description: 'password for redis')
+        string(name: 'redis-user-id', defaultValue: 'redis-user-dc', description: 'user id for redis')
+        string(name: 'redis-user-name', defaultValue: 'default', description: 'username for redis')
+        booleanParam(name: 'rest_encryption', defaultValue: 'true', description: 'encryption type at rest')
+        booleanParam(name: 'transit_encryption_enabled', defaultValue: 'true', description: 'transit encryption type')
+        string(name: 'replicas-per-node-group', defaultValue: '1', description: 'The number of replica nodes in each node group (shard)')
+        string(name: 'num-node-groups', defaultValue: '1', description: 'The number of node groups (shards) for this Redis replication group')
         string(name: 'parameter-group-family', defaultValue: 'redis6.x', description: 'Enter parameter group family for redis')
         string(name: 'efs-security-group', defaultValue: 'efs-mount-target-sg', description: 'Enter efs security group name')
         booleanParam(name: 'internal', defaultValue: 'false', description: 'Choose Internal or Internet Load balancer facing type')
@@ -221,6 +229,89 @@ pipeline {
                     def instancePublicIp = sh(returnStdout: true, script: "terraform output public_ip").trim()
 
                     env.INSTANCE_PUBLIC_IP = instancePublicIp
+                    }
+                }
+            }
+        }
+        stage('Redis Creation') {
+            steps {
+                script {
+                    def numnodegroup = params['num-node-groups'].toInteger()
+                    def replicanodegroup = params['replicas-per-node-group'].toInteger()
+                    dir('julesh-terraform/environments/dev/elasticache') {
+                        sh 'terraform init'
+                        
+                        def tfPlanCmd = "terraform plan -out=ec_tfplan " +
+                                        "-var 'replication-id=${params['redis-replication-id']}' " +
+                                        "-var 'redis-cluster=${params['redis-cluster-name']}' " +
+                                        "-var 'redis-engine=${params['redis-engine']}' " +
+                                        "-var 'redis-engine-version=${params['redis-engine-version']}' " +
+                                        "-var 'redis-node-type=${params['redis-node-type']}' " +
+                                        "-var 'num-node-groups=${numnodegroup}' " +
+                                        "-var 'replicas-per-node-group=${replicanodegroup}' " +
+                                        "-var 'parameter-group-family=${params['parameter-group-family']}' " +
+                                        "-var 'environment=${params.environment}' " +
+                                        "-var 'auth_token=${params.auth_token}' " +
+                                        "-var 'redis_password=${params.redis_password}' " +
+                                        "-var 'redis-user-id=${params['redis-user-id']}' " +
+                                        "-var 'redis-user-name=${params['redis-user-name']}' "
+
+                        if (params.rest_encryption) {
+                            tfPlanCmd += " -var 'rest_encryption=true'"
+                        } else {
+                            tfPlanCmd += " -var 'rest_encryption=false'"
+                        }
+
+                        if (params.transit_encryption_enabled) {
+                            tfPlanCmd += " -var 'transit_encryption_enabled=true'"
+                        } else {
+                            tfPlanCmd += " -var 'transit_encryption_enabled=false'"
+                        }
+
+                        sh tfPlanCmd
+                        sh 'terraform show -no-color ec_tfplan > ec_tfplan.txt'
+                        
+                        if (params.action == 'apply') {
+                        if (!params.autoApprove) {
+                            def plan = readFile 'ec_tfplan.txt'
+                            input message: "Do you want to apply the plan?",
+                                  parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
+                        }
+                        sh "terraform ${params.action} -input=false ec_tfplan"
+                    } else if (params.action == 'destroy') {
+                        sh "terraform ${params.action} --auto-approve -var '-var 'replication-id=${params['redis-replication-id']}' " +
+                            "-var 'redis-cluster=${params['redis-cluster-name']}' " +
+                                        "-var 'redis-engine=${params['redis-engine']}' " +
+                                        "-var 'redis-engine-version=${params['redis-engine-version']}' " +
+                                        "-var 'redis-node-type=${params['redis-node-type']}' " +
+                                        "-var 'num-node-groups=${numnodegroup}' " +
+                                        "-var 'replicas-per-node-group=${replicanodegroup}' " +
+                                        "-var 'parameter-group-family=${params['parameter-group-family']}' " +
+                                        "-var 'environment=${params.environment}' " +
+                                        "-var 'auth_token=${params.auth_token}' " +
+                                        "-var 'redis_password=${params.redis_password}' " +
+                                        "-var 'redis-user-id=${params['redis-user-id']}' " +
+                                        "-var 'redis-user-name=${params['redis-user-name']}' "
+
+                        if (params.rest_encryption) {
+                            tfPlanCmd += " -var 'rest_encryption=true'"
+                        } else {
+                            tfPlanCmd += " -var 'rest_encryption=false'"
+                        }
+
+                        if (params.transit_encryption_enabled) {
+                            tfPlanCmd += " -var 'transit_encryption_enabled=true'"
+                        } else {
+                            tfPlanCmd += " -var 'transit_encryption_enabled=false'"
+                        }
+                        
+                    } else {
+                        error "Invalid action selected. Please choose either 'apply' or 'destroy'."
+                    }
+                    def redisendpoint = sh(returnStdout: true, script: "terraform output -json redis_cluster_endpoint").trim()
+                    def fromatedendpoint = redisendpoint.replaceAll('"', '')
+
+                    env.redis_endpoint = fromatedendpoint
                     }
                 }
             }
@@ -429,78 +520,6 @@ pipeline {
                 }
             }
         }
-        stage('Redis Creation') {
-            steps {
-                script {
-                    def cachenodes = params['num-cache-nodes'].toInteger()
-                    dir('julesh-terraform/environments/dev/elasticache') {
-                        sh 'terraform init'
-                        
-                        def tfPlanCmd = "terraform plan -out=ec_tfplan " +
-                                        "-var 'replication-id=${params['redis-replication-id']}' " +
-                                        "-var 'redis-cluster=${params['redis-cluster-name']}' " +
-                                        "-var 'redis-engine=${params['redis-engine']}' " +
-                                        "-var 'redis-engine-version=${params['redis-engine-version']}' " +
-                                        "-var 'redis-node-type=${params['redis-node-type']}' " +
-                                        "-var 'num-cache-nodes=${cachenodes}' " +
-                                        "-var 'parameter-group-family=${params['parameter-group-family']}' "
-                        sh tfPlanCmd
-                        sh 'terraform show -no-color ec_tfplan > ec_tfplan.txt'
-                        
-                        if (params.action == 'apply') {
-                        if (!params.autoApprove) {
-                            def plan = readFile 'ec_tfplan.txt'
-                            input message: "Do you want to apply the plan?",
-                                  parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
-                        }
-                        sh "terraform ${params.action} -input=false ec_tfplan"
-                    } else if (params.action == 'destroy') {
-                        sh "terraform ${params.action} --auto-approve -var '-var 'replication-id=${params['redis-replication-id']}' " +
-                            "-var 'redis-cluster=${params['redis-cluster-name']}' " +
-                            "-var 'redis-engine=${params['redis-engine']}' " +
-                            "-var 'redis-engine-version=${params['redis-engine-version']}' " +
-                            "-var 'redis-node-type=${params['redis-node-type']}' " +
-                            "-var 'num-cache-nodes=${params['num-cache-nodes']}' " +
-                            "-var 'parameter-group-family=${params['parameter-group-family']}' "
-                    } else {
-                        error "Invalid action selected. Please choose either 'apply' or 'destroy'."
-                    }
-                    def redisendpoint = sh(returnStdout: true, script: "terraform output -json redis_cluster_endpoint").trim()
-                    def fromatedendpoint = redisendpoint.replaceAll('"', '')
-
-                    env.redis_endpoint = fromatedendpoint
-                    }
-                }
-            }
-        }
-        
-        stage('EKS Addon') {
-            steps {
-                script {
-                    dir('julesh-terraform/environments/dev/addon') {
-                        sh 'terraform init'
-                        
-                        def tfPlanCmd = "terraform plan -out=as_tfplan " +
-                                        "-var 'cluster-name=${params['eks-cluster-name']}'"
-                        sh tfPlanCmd
-                        sh 'terraform show -no-color as_tfplan > as_tfplan.txt'
-                        
-                        if (params.action == 'apply') {
-                        if (!params.autoApprove) {
-                            def plan = readFile 'as_tfplan.txt'
-                            input message: "Do you want to apply the plan?",
-                                  parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
-                        }
-                        sh "terraform ${params.action} -input=false as_tfplan"
-                    } else if (params.action == 'destroy') {
-                        sh "terraform ${params.action} --auto-approve -var 'cluster-name=${params['eks-cluster-name']}' "
-                    } else {
-                        error "Invalid action selected. Please choose either 'apply' or 'destroy'."
-                    }
-                    }
-                }
-            }
-        }
         stage('Load balancer Creation') {
             steps {
                 script {
@@ -560,6 +579,35 @@ pipeline {
                 }
             }
         }
+        
+        stage('EKS Addon') {
+            steps {
+                script {
+                    dir('julesh-terraform/environments/dev/addon') {
+                        sh 'terraform init'
+                        
+                        def tfPlanCmd = "terraform plan -out=as_tfplan " +
+                                        "-var 'cluster-name=${params['eks-cluster-name']}'"
+                        sh tfPlanCmd
+                        sh 'terraform show -no-color as_tfplan > as_tfplan.txt'
+                        
+                        if (params.action == 'apply') {
+                        if (!params.autoApprove) {
+                            def plan = readFile 'as_tfplan.txt'
+                            input message: "Do you want to apply the plan?",
+                                  parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
+                        }
+                        sh "terraform ${params.action} -input=false as_tfplan"
+                    } else if (params.action == 'destroy') {
+                        sh "terraform ${params.action} --auto-approve -var 'cluster-name=${params['eks-cluster-name']}' "
+                    } else {
+                        error "Invalid action selected. Please choose either 'apply' or 'destroy'."
+                    }
+                    }
+                }
+            }
+        }
+        
         stage('security assesment') {
             steps {
                 script {
