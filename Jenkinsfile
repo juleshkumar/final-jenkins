@@ -63,7 +63,7 @@ pipeline {
         booleanParam(name: 'internal', defaultValue: 'false', description: 'Choose Internal or Internet Load balancer facing type')
         string(name: 'load_balancer_type', defaultValue: 'application', description: 'Choose Load balancer type')
         string(name: 'load_balancer_name', defaultValue: 'decimal-load-balancer', description: 'Enter Load balancer name')
-        string(name: 'lb-port', defaultValue: '80', description: 'Enter Load balancer port')
+        string(name: 'lb-port', defaultValue: '30023', description: 'Enter Load balancer port')
         string(name: 'protocol', defaultValue: 'HTTP', description: 'protocol for Load balancer security group')
         string(name: 'autoscaling-group-name', defaultValue: 'vrt-asg', description: 'ASG name')
         string(name: 'target-group-name', defaultValue: 'tg-sg-lb', description: 'Enter target group name')
