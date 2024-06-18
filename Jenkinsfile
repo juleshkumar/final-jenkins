@@ -43,7 +43,7 @@ pipeline {
         string(name: 'vrt_db_instance_type', defaultValue: 'db.m6g.large', description: 'Enter DB instance type')
         string(name: 'vrt_database_name', defaultValue: 'decimal_database_technologies', description: 'Enter database name')
         string(name: 'database_user', defaultValue: 'psq_demo', description: 'Enter username for database')
-        string(name: 'database_password', defaultValue: 'Qwerty#789', description: 'Enter password for database')
+        password(name: 'database_password', defaultValue: 'Qwerty#789', description: 'Enter password for database')
         string(name: 'redis-replication-id', defaultValue: 'decimal-elasticache-replication', description: 'Enter elasticache replication-id')
         string(name: 'redis-cluster-name', defaultValue: 'elasticache-redis-cluster', description: 'Enter name for redis-cluster')
         string(name: 'redis-engine', defaultValue: 'redis', description: 'Enter redis engine name')
