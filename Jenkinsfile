@@ -224,6 +224,7 @@ pipeline {
                                       "-var 'ami=${params.jumpbox_ami_id}' " +
                                       "-var 'backend_bucket=${params.bucket_name}' " +
                                       "-var 'region=${params.region}' " +
+                                      "-var 'public_key_file=${params['public_key_file']}' " +
                                       "-var 'ec2_key_name=${params.jumpbox_key_name}' " +
                                       "-var 'ec2_instance_type=${params.jumpbox_instance_type}' " +
                                       "-var 'js_user=${params.jumpbox_user}'"
@@ -240,6 +241,8 @@ pipeline {
                   } else if (params.action == 'destroy') {
                       sh "terraform ${params.action} --auto-approve -var 'ami=${params.jumpbox_ami_id}' " +
                           "-var 'ec2_key_name=${params.jumpbox_key_name}' " +
+                          "-var 'environment=${params.environment}' " +
+                          "-var 'public_key_file=${params['public_key_file']}' " +
                           "-var 'ec2_instance_type=${params.jumpbox_instance_type}' " +
                           "-var 'backend_bucket=${params.bucket_name}' " +
                           "-var 'region=${params.region}' " +
@@ -270,6 +273,7 @@ pipeline {
                                       "-var 'replication-id=${params['redis-replication-id']}' " +
                                       "-var 'redis-cluster=${params['redis-cluster-name']}' " +
                                       "-var 'redis-engine=${params['redis-engine']}' " +
+                                      "-var 'environment=${params.environment}' " +
                                       "-var 'backend_bucket=${params.bucket_name}' " +
                                       "-var 'region=${params.region}' " +
                                       "-var 'redis-engine-version=${params['redis-engine-version']}' " +
