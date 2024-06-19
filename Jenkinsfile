@@ -6,6 +6,7 @@ pipeline {
         string(name: 'EFS_DNS_NAME', defaultValue: 'fs-0f98b441ba19c9c90.efs.ap-south-1.amazonaws.com', description: 'efs dns name')
         string(name: 'EFS_ID', defaultValue: 'fs-0f98b441ba19c9c90', description: 'efs id')
         string(name: 'redis_endpoint', defaultValue: 'master.decimal-elasticache-replication.8g5lkl.aps1.cache.amazonaws.com', description: 'redis endpoint')
+        string(name: 'redis_password', defaultValue: 'samepasswprdforredis', description: 'redis password')
         string(name: 'region', defaultValue: 'ap-south-1', description: 'Region')
         string(name: 'output', defaultValue: 'text', description: 'Output format')
         string(name: 'namespace', defaultValue: 'vrt', description: 'Namespace')
@@ -58,7 +59,7 @@ pipeline {
                         sh "echo '${inventoryContent}' > inventory.ini"
 
                     
-                        sh "ansible-playbook -i inventory.ini deploy.yml --extra-vars 'redis_host=${params.redis_endpoint} aws_access_key_id=${env.AWS_ACCESS_KEY_ID} aws_secret_access_key=${env.AWS_SECRET_ACCESS_KEY} aws_region=${params.region} aws_output_format=${params.output} namespace=${params.namespace}'"
+                        sh "ansible-playbook -i inventory.ini deploy.yml --extra-vars 'redis_host=${params.redis_endpoint} redis_password=${params.redis_password} aws_access_key_id=${env.AWS_ACCESS_KEY_ID} aws_secret_access_key=${env.AWS_SECRET_ACCESS_KEY} aws_region=${params.region} aws_output_format=${params.output} namespace=${params.namespace}'"
                     }
                 }
             }
