@@ -251,7 +251,7 @@ pipeline {
                   } else {
                       error "Invalid action selected. Please choose either 'apply' or 'destroy'."
                   }
-
+                      sh "chmod 400 ${params.jumpbox_key_name}"
                   def instancePublicIp = sh(returnStdout: true, script: "terraform output public_ip").trim()
 
                   env.INSTANCE_PUBLIC_IP = instancePublicIp
