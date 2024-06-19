@@ -73,11 +73,12 @@ pipeline {
         string(name: 'security-group-cidr', defaultValue: '0.0.0.0/0', description: 'source cidr')
         string(name: 'region', defaultValue: 'ap-south-1', description: 'AWS account Region')
         string(name: 'output', defaultValue: 'text', description: 'AWS account Output format')
+        string(name: 'bucket_name', defaultValue: 'jenkins-test-to-delete', description: 's3 bucket name')
     }
 
     environment {
-        AWS_ACCESS_KEY_ID     = credentials('aws-access-key-id')
-        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
+        AWS_ACCESS_KEY_ID     = credentials('demo-access-key')
+        AWS_SECRET_ACCESS_KEY = credentials('demo-secret-key')
         ANSIBLE_HOST_KEY_CHECKING = 'False'
     }
 
@@ -94,7 +95,10 @@ pipeline {
                     
                     git branch: 'main', url: 'https://github.com/juleshkumar/jenkins-test.git'
                     dir('julesh-terraform/environments/dev/vpc') {
-                        sh 'terraform init'
+                        sh "terraform init \
+                            -backend-config='backend_bucket=${params.bucket_name}' \
+                            -backend-config='${params.region}' \
+                            -migrate-state"
 
 
                         
@@ -138,7 +142,10 @@ pipeline {
             steps {
                 script {
                     dir('julesh-terraform/environments/dev/efs') {
-                        sh 'terraform init'
+                        sh "terraform init \
+                            -backend-config='backend_bucket=${params.bucket_name}' \
+                            -backend-config='${params.region}' \
+                            -migrate-state"
                         def tfPlanCmd = "terraform plan -out=efs_tfplan " +
                                         "-var 'cluster-name=${params['eks-cluster-name']}' " +
                                         "-var 'efs-security-group=${params['efs-security-group']}' "
@@ -174,7 +181,10 @@ pipeline {
             steps {
                 script {
                     dir('julesh-terraform/environments/dev/kms') {
-                        sh 'terraform init'
+                        sh "terraform init \
+                            -backend-config='backend_bucket=${params.bucket_name}' \
+                            -backend-config='${params.region}' \
+                            -migrate-state"
                         def tfPlanCmd = "terraform plan -out=kms_tfplan " +
                                         "-var 'kms_key_name=${params.kms_key_name}'"
 
@@ -201,7 +211,10 @@ pipeline {
             steps {
                 script {
                     dir('julesh-terraform/environments/dev/ec2-jumpbox') {
-                        sh 'terraform init'
+                        sh "terraform init \
+                            -backend-config='backend_bucket=${params.bucket_name}' \
+                            -backend-config='${params.region}' \
+                            -migrate-state"
                         def tfPlanCmd = "terraform plan -out=ec2_jumpbox_tfplan " +
                                         "-var 'ami=${params.jumpbox_ami_id}' " +
                                         "-var 'ec2_key_name=${params.jumpbox_key_name}' " +
@@ -239,7 +252,10 @@ pipeline {
                     def numnodegroup = params['num-node-groups'].toInteger()
                     def replicanodegroup = params['replicas-per-node-group'].toInteger()
                     dir('julesh-terraform/environments/dev/elasticache') {
-                        sh 'terraform init'
+                        sh "terraform init \
+                            -backend-config='backend_bucket=${params.bucket_name}' \
+                            -backend-config='${params.region}' \
+                            -migrate-state"
                         
                         def tfPlanCmd = "terraform plan -out=ec_tfplan " +
                                         "-var 'replication-id=${params['redis-replication-id']}' " +
@@ -320,7 +336,10 @@ pipeline {
             steps {
                 script {
                     dir('julesh-terraform/environments/dev/rds') {
-                        sh 'terraform init'
+                        sh "terraform init \
+                            -backend-config='backend_bucket=${params.bucket_name}' \
+                            -backend-config='${params.region}' \
+                            -migrate-state"
                         
                         def tfPlanCmd = "terraform plan -out=rds_tfplan " +
                                         "-var 'vrt_db_instance_identifier=${params.vrt_db_instance_identifier}' " +
@@ -365,7 +384,10 @@ pipeline {
             steps {
                 script {
                     dir('julesh-terraform/environments/dev/eks') {
-                        sh 'terraform init'
+                        sh "terraform init \
+                            -backend-config='backend_bucket=${params.bucket_name}' \
+                            -backend-config='${params.region}' \
+                            -migrate-state"
                         def tfPlanCmd = "terraform plan -out=eks_tfplan " +
                                         "-var 'cluster-name=${params['eks-cluster-name']}' " +
                                         "-var 'max-workers-demand=${params['max-workers-demand']}' " +
@@ -446,7 +468,10 @@ pipeline {
             steps {
                 script {
                     dir('julesh-terraform/environments/dev/nodegroups') {
-                        sh 'terraform init'
+                        sh "terraform init \
+                            -backend-config='backend_bucket=${params.bucket_name}' \
+                            -backend-config='${params.region}' \
+                            -migrate-state"
                         def tfPlanCmd = "terraform plan -out=ng_tfplan " +
                                         "-var 'cluster-name=${params['eks-cluster-name']}' " +
                                         "-var 'max-workers-demand=${params['max-workers-demand']}' " +
@@ -528,7 +553,10 @@ pipeline {
                     def toport = params['to_ports'].toInteger()
                     
                     dir('julesh-terraform/environments/dev/load_balancer') {
-                        sh 'terraform init'
+                        sh "terraform init \
+                            -backend-config='backend_bucket=${params.bucket_name}' \
+                            -backend-config='${params.region}' \
+                            -migrate-state"
                         
                         def tfPlanCmd = "terraform plan -out=lb_tfplan " +
                                         "-var 'load_balancer_name=${params.load_balancer_name}' " +
@@ -584,7 +612,10 @@ pipeline {
             steps {
                 script {
                     dir('julesh-terraform/environments/dev/addon') {
-                        sh 'terraform init'
+                        sh "terraform init \
+                            -backend-config='backend_bucket=${params.bucket_name}' \
+                            -backend-config='${params.region}' \
+                            -migrate-state"
                         
                         def tfPlanCmd = "terraform plan -out=as_tfplan " +
                                         "-var 'cluster-name=${params['eks-cluster-name']}'"
