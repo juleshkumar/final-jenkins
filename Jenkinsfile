@@ -97,7 +97,7 @@ pipeline {
                     dir('julesh-terraform/environments/dev/vpc') {
                         sh "terraform init \
                             -backend-config='backend_bucket=${params.bucket_name}' \
-                            -backend-config='${params.region}' \
+                            -backend-config='region=${params.region}' \
                             -migrate-state"
 
 
