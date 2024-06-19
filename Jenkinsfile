@@ -223,6 +223,7 @@ pipeline {
                       def tfPlanCmd = "terraform plan -out=ec2_jumpbox_tfplan " +
                                       "-var 'ami=${params.jumpbox_ami_id}' " +
                                       "-var 'backend_bucket=${params.bucket_name}' " +
+                                      "-var 'environment=${params.environment}' " +
                                       "-var 'region=${params.region}' " +
                                       "-var 'public_key_file=${params['public_key_file']}' " +
                                       "-var 'ec2_key_name=${params.jumpbox_key_name}' " +
