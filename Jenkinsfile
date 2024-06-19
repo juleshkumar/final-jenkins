@@ -1,3 +1,4 @@
+
 pipeline {
   agent any
 
@@ -148,6 +149,8 @@ pipeline {
                           -migrate-state"
                       def tfPlanCmd = "terraform plan -out=efs_tfplan " +
                                       "-var 'cluster-name=${params['eks-cluster-name']}' " +
+                                      "-var 'backend_bucket=${params.bucket_name}' " +
+                                      "-var 'region=${params.region}' " +
                                       "-var 'efs-security-group=${params['efs-security-group']}' "
 
                       sh tfPlanCmd
@@ -160,6 +163,8 @@ pipeline {
                       }
                       sh "terraform ${params.action} -input=false efs_tfplan"
                       sh "terraform ${params.action} --auto-approve -var 'cluster-name=${params['eks-cluster-name']}' "+
+                          "-var 'backend_bucket=${params.bucket_name}' " +
+                          "-var 'region=${params.region}' " +
                           "-var 'efs-security-group=${params['efs-security-group']}' "
                   } else {
                       error "Invalid action selected. Please choose either 'apply' or 'destroy'."
@@ -186,7 +191,9 @@ pipeline {
                           -backend-config='region=${params.region}' \
                           -migrate-state"
                       def tfPlanCmd = "terraform plan -out=kms_tfplan " +
-                                      "-var 'kms_key_name=${params.kms_key_name}'"
+                                      "-var 'kms_key_name=${params.kms_key_name}'" +
+                                      "-var 'backend_bucket=${params.bucket_name}' " +
+                                      "-var 'region=${params.region}' "
 
                       sh tfPlanCmd
                       sh 'terraform show -no-color kms_tfplan > kms_tfplan.txt'
@@ -197,7 +204,9 @@ pipeline {
                                 parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
                       }
                       sh "terraform ${params.action} -input=false kms_tfplan"
-                      sh "terraform ${params.action} --auto-approve -var 'kms_key_name=${params.kms_key_name}' "
+                      sh "terraform ${params.action} --auto-approve -var 'kms_key_name=${params.kms_key_name}' " +
+                          "-var 'backend_bucket=${params.bucket_name}' " +
+                          "-var 'region=${params.region}' " 
                   } else {
                       error "Invalid action selected. Please choose either 'apply' or 'destroy'."
                   }
@@ -217,6 +226,8 @@ pipeline {
                           -migrate-state"
                       def tfPlanCmd = "terraform plan -out=ec2_jumpbox_tfplan " +
                                       "-var 'ami=${params.jumpbox_ami_id}' " +
+                                      "-var 'backend_bucket=${params.bucket_name}' " +
+                                      "-var 'region=${params.region}' " +
                                       "-var 'ec2_key_name=${params.jumpbox_key_name}' " +
                                       "-var 'ec2_instance_type=${params.jumpbox_instance_type}' " +
                                       "-var 'js_user=${params.jumpbox_user}'"
@@ -234,6 +245,8 @@ pipeline {
                       sh "terraform ${params.action} --auto-approve -var 'ami=${params.jumpbox_ami_id}' " +
                           "-var 'ec2_key_name=${params.jumpbox_key_name}' " +
                           "-var 'ec2_instance_type=${params.jumpbox_instance_type}' " +
+                          "-var 'backend_bucket=${params.bucket_name}' " +
+                          "-var 'region=${params.region}' " +
                           "-var 'js_user=${params.jumpbox_user}'"
                   } else {
                       error "Invalid action selected. Please choose either 'apply' or 'destroy'."
@@ -261,6 +274,8 @@ pipeline {
                                       "-var 'replication-id=${params['redis-replication-id']}' " +
                                       "-var 'redis-cluster=${params['redis-cluster-name']}' " +
                                       "-var 'redis-engine=${params['redis-engine']}' " +
+                                      "-var 'backend_bucket=${params.bucket_name}' " +
+                                      "-var 'region=${params.region}' " +
                                       "-var 'redis-engine-version=${params['redis-engine-version']}' " +
                                       "-var 'redis-node-type=${params['redis-node-type']}' " +
                                       "-var 'num-node-groups=${numnodegroup}' " +
@@ -301,6 +316,8 @@ pipeline {
                                       "-var 'redis-engine-version=${params['redis-engine-version']}' " +
                                       "-var 'redis-node-type=${params['redis-node-type']}' " +
                                       "-var 'num-node-groups=${numnodegroup}' " +
+                                      "-var 'backend_bucket=${params.bucket_name}' " +
+                                      "-var 'region=${params.region}' " +
                                       "-var 'replicas-per-node-group=${replicanodegroup}' " +
                                       "-var 'parameter-group-family=${params['parameter-group-family']}' " +
                                       "-var 'environment=${params.environment}' " +
@@ -346,6 +363,8 @@ pipeline {
                                       "-var 'vrt_db_security_group=${params.vrt_db_security_group}' " +
                                       "-var 'vrt__db_cidr_range=${params.vrt__db_cidr_range}' " +
                                       "-var 'major_version=${params.major_version}' " +
+                                      "-var 'backend_bucket=${params.bucket_name}' " +
+                                      "-var 'region=${params.region}' " +
                                       "-var 'vrt_db_allocated_storage=${params.vrt_db_allocated_storage}' " +
                                       "-var 'engine_version=${params.db_engine_version}' " +
                                       "-var 'vrt_db_instance_type=${params.vrt_db_instance_type}' " +
@@ -367,6 +386,8 @@ pipeline {
                           "-var 'vrt_db_security_group=${params.vrt_db_security_group}' " +
                           "-var 'vrt__db_cidr_range=${params.vrt__db_cidr_range}' " +
                           "-var 'major_version=${params.major_version}' " +
+                          "-var 'backend_bucket=${params.bucket_name}' " +
+                          "-var 'region=${params.region}' " +
                           "-var 'vrt_db_allocated_storage=${params.vrt_db_allocated_storage}' " +
                           "-var 'engine_version=${params.db_engine_version}' " +
                           "-var 'vrt_db_instance_type=${params.vrt_db_instance_type}' " +
@@ -392,6 +413,8 @@ pipeline {
                                       "-var 'cluster-name=${params['eks-cluster-name']}' " +
                                       "-var 'max-workers-demand=${params['max-workers-demand']}' " +
                                       "-var 'max-workers-spot=${params['max-workers-spot']}' " +
+                                      "-var 'backend_bucket=${params.bucket_name}' " +
+                                      "-var 'region=${params.region}' " +
                                       "-var 'instance_capacity_types_demand=${params['instance_capacity_types_demand']}' " +
                                       "-var 'instance_capacity_types_spot=${params['instance_capacity_types_spot']}' " +
                                       "-var 'inst_disk_size=${params['node_instance_disk_size']}' " +
@@ -431,6 +454,8 @@ pipeline {
                       sh "terraform ${params.action} --auto-approve -var 'cluster-name=${params['eks-cluster-name']}' " +
                           "-var 'max-workers-demand=${params['max-workers-demand']}' " +
                           "-var 'max-workers-spot=${params['max-workers-spot']}' " +
+                          "-var 'backend_bucket=${params.bucket_name}' " +
+                          "-var 'region=${params.region}' " +
                           "-var 'instance_capacity_types_demand=${params['instance_capacity_types_demand']}' " +
                           "-var 'instance_capacity_types_spot=${params['instance_capacity_types_spot']}' " +
                           "-var 'inst_disk_size=${params['node_instance_disk_size']}' " +
@@ -476,6 +501,8 @@ pipeline {
                                       "-var 'cluster-name=${params['eks-cluster-name']}' " +
                                       "-var 'max-workers-demand=${params['max-workers-demand']}' " +
                                       "-var 'max-workers-spot=${params['max-workers-spot']}' " +
+                                      "-var 'backend_bucket=${params.bucket_name}' " +
+                                      "-var 'region=${params.region}' " +
                                       "-var 'instance_capacity_types_demand=${params['instance_capacity_types_demand']}' " +
                                       "-var 'instance_capacity_types_spot=${params['instance_capacity_types_spot']}' " +
                                       "-var 'inst_disk_size=${params['node_instance_disk_size']}' " +
@@ -513,6 +540,8 @@ pipeline {
                       sh "terraform ${params.action} --auto-approve -var 'cluster-name=${params['eks-cluster-name']}' " +
                           "-var 'max-workers-demand=${params['max-workers-demand']}' " +
                           "-var 'max-workers-spot=${params['max-workers-spot']}' " +
+                          "-var 'backend_bucket=${params.bucket_name}' " +
+                          "-var 'region=${params.region}' " +
                           "-var 'instance_capacity_types_demand=${params['instance_capacity_types_demand']}' " +
                           "-var 'instance_capacity_types_spot=${params['instance_capacity_types_spot']}' " +
                           "-var 'inst_disk_size=${params['node_instance_disk_size']}' " +
@@ -561,6 +590,8 @@ pipeline {
                       def tfPlanCmd = "terraform plan -out=lb_tfplan " +
                                       "-var 'load_balancer_name=${params.load_balancer_name}' " +
                                       "-var 'lb-port=${lbport}' " +
+                                      "-var 'backend_bucket=${params.bucket_name}' " +
+                                      "-var 'region=${params.region}' " +
                                       "-var 'from_ports=${fromport}' " +
                                       "-var 'to_ports=${toport}' " +
                                       "-var 'load_balancer_type=${params.load_balancer_type}' " +
@@ -589,6 +620,8 @@ pipeline {
                           "-var 'lb-port=${lbport}' " +
                           "-var 'from_ports=${fromport}' " +
                           "-var 'to_ports=${toport}' " +
+                          "-var 'backend_bucket=${params.bucket_name}' " +
+                          "-var 'region=${params.region}' " +
                           "-var 'load_balancer_type=${params.load_balancer_type}' " +
                           "-var 'protocol=${params.protocol}' " +
                           "-var 'autoscaling-group-name=${params['autoscaling-group-name']}' " +
