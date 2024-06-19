@@ -96,7 +96,7 @@ pipeline {
                     git branch: 'main', url: 'https://github.com/juleshkumar/jenkins-test.git'
                     dir('julesh-terraform/environments/dev/vpc') {
                         sh "terraform init \
-                            -backend-config='backend_bucket=${params.bucket_name}' \
+                            -backend-config='bucket=${params.bucket_name}' \
                             -backend-config='region=${params.region}' \
                             -migrate-state"
 
