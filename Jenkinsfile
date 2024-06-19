@@ -202,7 +202,7 @@ pipeline {
                                 parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
                       }
                       sh "terraform ${params.action} -input=false kms_tfplan"
-                      sh "terraform ${params.action} --auto-approve -var 'kms_key_name=${params.kms_key_name}' " +
+                      sh "terraform ${params.action} --auto-approve -var 'kms_key_name=${params.kms_key_name}' "
                   } else {
                       error "Invalid action selected. Please choose either 'apply' or 'destroy'."
                   }
