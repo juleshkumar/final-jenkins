@@ -41,7 +41,7 @@ pipeline {
                 script {
                     dir('julesh-terraform/environments/dev/Tools') {
 
-                        def inventoryContent = "[ec2]\n${params.INSTANCE_PUBLIC_IP} ansible_user=ubuntu ansible_ssh_private_key_file=/var/lib/jenkins/keypairs/jenkins-test-server2-keypair.pem"
+                        def inventoryContent = "[ec2]\n${params.INSTANCE_PUBLIC_IP} ansible_user=ubuntu ansible_ssh_private_key_file=/var/lib/jenkins/.ssh/id_rsa"
                         sh "echo '${inventoryContent}' > inventory.ini"
 
                     
