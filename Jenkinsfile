@@ -182,35 +182,7 @@ pipeline {
               }
           }
       }
-      stage('KMS Creation') {
-          steps {
-              script {
-                  dir('julesh-terraform/environments/dev/kms') {
-                      sh "terraform init \
-                          -backend-config='bucket=${params.bucket_name}' \
-                          -backend-config='region=${params.region}' \
-                          -migrate-state"
-                      def tfPlanCmd = "terraform plan -out=kms_tfplan " +
-                                      "-var 'kms_key_name=${params.kms_key_name}'"
-
-                      sh tfPlanCmd
-                      sh 'terraform show -no-color kms_tfplan > kms_tfplan.txt'
-                      if (params.action == 'apply') {
-                      if (!params.autoApprove) {
-                          def plan = readFile 'kms_tfplan.txt'
-                          input message: "Do you want to apply the plan?",
-                                parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
-                      }
-                      sh "terraform ${params.action} -input=false kms_tfplan"
-                      sh "terraform ${params.action} --auto-approve -var 'kms_key_name=${params.kms_key_name}' "
-                  } else {
-                      error "Invalid action selected. Please choose either 'apply' or 'destroy'."
-                  }
-
-                  }
-              }
-          }
-      }
+      
       
       stage('ec2-jumbox creation') {
           steps {
@@ -255,6 +227,35 @@ pipeline {
                   def instancePublicIp = sh(returnStdout: true, script: "terraform output public_ip").trim()
 
                   env.INSTANCE_PUBLIC_IP = instancePublicIp
+                  }
+              }
+          }
+      }
+      stage('KMS Creation') {
+          steps {
+              script {
+                  dir('julesh-terraform/environments/dev/kms') {
+                      sh "terraform init \
+                          -backend-config='bucket=${params.bucket_name}' \
+                          -backend-config='region=${params.region}' \
+                          -migrate-state"
+                      def tfPlanCmd = "terraform plan -out=kms_tfplan " +
+                                      "-var 'kms_key_name=${params.kms_key_name}'"
+
+                      sh tfPlanCmd
+                      sh 'terraform show -no-color kms_tfplan > kms_tfplan.txt'
+                      if (params.action == 'apply') {
+                      if (!params.autoApprove) {
+                          def plan = readFile 'kms_tfplan.txt'
+                          input message: "Do you want to apply the plan?",
+                                parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
+                      }
+                      sh "terraform ${params.action} -input=false kms_tfplan"
+                      sh "terraform ${params.action} --auto-approve -var 'kms_key_name=${params.kms_key_name}' "
+                  } else {
+                      error "Invalid action selected. Please choose either 'apply' or 'destroy'."
+                  }
+                      sh "sudo chmod 400 /var/lib/jenkins/workspace/erftghjkl/julesh-terraform/environments/dev/ec2-jumpbox/${params.jumpbox_key_name}"
                   }
               }
           }
