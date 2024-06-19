@@ -73,7 +73,7 @@ pipeline {
         string(name: 'security-group-cidr', defaultValue: '0.0.0.0/0', description: 'source cidr')
         string(name: 'region', defaultValue: 'ap-south-1', description: 'AWS account Region')
         string(name: 'output', defaultValue: 'text', description: 'AWS account Output format')
-        string(name: 'bucket_name', defaultValue: 'jenkins-test-to-delete', description: 's3 bucket name')
+        string(name: 'bucket_name', defaultValue: 'amit-demo-bucket-test', description: 's3 bucket name')
     }
 
     environment {
