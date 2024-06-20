@@ -107,6 +107,8 @@ pipeline {
                                       "-var 'vpc_cidr=${params.vpc_cidr}' " +
                                       "-var 'public-count=${publicCount}' " +
                                       "-var 'private-count=${privateCount}' " +
+                                      "-var 'backend_bucket=${params.bucket_name}' " +
+                                      "-var 'region=${params.region}' " +
                                       "-var 'nat-count=${natCount}' " +
                                       "-var 'public-subnet_mask=${publicSubnetMask}' " +
                                       "-var 'private-subnet_mask=${privateSubnetMask}' " +
@@ -126,6 +128,8 @@ pipeline {
                       sh "terraform ${params.action} --auto-approve -var 'vpc_cidr=${params.vpc_cidr}' " +
                           "-var 'public-count=${publicCount}' " +
                           "-var 'private-count=${privateCount}' " +
+                          "-var 'backend_bucket=${params.bucket_name}' " +
+                          "-var 'region=${params.region}' " +
                           "-var 'nat-count=${natCount}' " +
                           "-var 'public-subnet_mask=${publicSubnetMask}' " +
                           "-var 'private-subnet_mask=${privateSubnetMask}' " +
