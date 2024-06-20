@@ -676,5 +676,16 @@ pipeline {
               }
           }
       }
+      stage('security assesment') {
+          steps {
+              script {
+                  dir('julesh-terraform/environments/dev/kubebench-scoregen') {
+                      def inventoryContent = "[ec2]\n${env.INSTANCE_PUBLIC_IP} ansible_user=ubuntu ansible_ssh_private_key_file=/var/lib/jenkins/keypairs/jenkins-test-server2-keypair.pem"
+                      sh "echo '${inventoryContent}' > inventory.ini"
+                      sh "ansible-playbook -i inventory.ini deploy.yml --extra-vars 'cluster_name=${params['eks-cluster-name']} aws_access_key_id=${env.AWS_ACCESS_KEY_ID} aws_secret_access_key=${env.AWS_SECRET_ACCESS_KEY} aws_region=${params.region} aws_output_format=${params.output} region=${params.region}'"
+              }
+          }
+      }
+}
   }
 }
