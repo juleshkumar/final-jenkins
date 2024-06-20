@@ -78,8 +78,8 @@ pipeline {
   }
 
   environment {
-      AWS_ACCESS_KEY_ID     = credentials('demo-access-key')
-      AWS_SECRET_ACCESS_KEY = credentials('demo-secret-key')
+      AWS_ACCESS_KEY_ID     = credentials('access-key-decimal')
+      AWS_SECRET_ACCESS_KEY = credentials('seccret-access-key-decimal')
       ANSIBLE_HOST_KEY_CHECKING = 'False'
   }
 
