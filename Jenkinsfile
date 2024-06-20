@@ -244,8 +244,7 @@ pipeline {
                           -backend-config='region=${params.region}' \
                           -migrate-state"
                       def tfPlanCmd = "terraform plan -out=kms_tfplan " +
-                                      "-var 'kms_key_name=${params.kms_key_name}'" +
-                                      "-var 'region=${params.region}' "
+                                      "-var 'kms_key_name=${params.kms_key_name}'"
 
                       sh tfPlanCmd
                       sh 'terraform show -no-color kms_tfplan > kms_tfplan.txt'
@@ -256,8 +255,7 @@ pipeline {
                                 parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
                       }
                       sh "terraform ${params.action} -input=false kms_tfplan"
-                      sh "terraform ${params.action} --auto-approve -var 'kms_key_name=${params.kms_key_name}' " +
-                         "-var 'region=${params.region}' "
+                      sh "terraform ${params.action} --auto-approve -var 'kms_key_name=${params.kms_key_name}' "
                   } else {
                       error "Invalid action selected. Please choose either 'apply' or 'destroy'."
                   }
